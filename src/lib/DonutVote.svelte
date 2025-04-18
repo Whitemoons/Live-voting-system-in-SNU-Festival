@@ -77,9 +77,9 @@
       </mask>
     </defs>
 
-    <image href="/red_donut.png" x="0" y="0" width={size} height={size} />
+    <image href="/red_donut_square.png" x="0" y="0" width={size} height={size} />
     <image
-      href="/black_donut.png"
+      href="/black_donut_square.png"
       x="0"
       y="0"
       width={size}
