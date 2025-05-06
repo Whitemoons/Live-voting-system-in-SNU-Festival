@@ -6,16 +6,29 @@
   import InitialGroupLogo from './lib/InitialGroupLogo.svelte';
   import ShowQr from './lib/ShowQR.svelte';
 
-  import { startStatePolling, stopStatePolling } from './lib/polling';
-  import { state } from './lib/voteStore';
+  import { startLivePolling, startStatePolling, stopLivePolling, stopStatePolling } from './lib/polling';
+  import { state, liveVote, finalVote } from './lib/voteStore';
 
   let voteRatio = 0.5;
   
   const group1 = import.meta.env.VITE_GROUP_1;
   const group2 = import.meta.env.VITE_GROUP_2;
 
+  const detectState = state.subscribe(s => {
+    if (showLiveQR()) {
+      startLivePolling();
+    } else {
+      stopLivePolling();
+    }
+  })
+
+  const liveRatio = liveVote.subscribe(val => {
+    if (val['혼또니'] == 0 && val['히스'] == 0) voteRatio = 0.5;
+    else voteRatio = val['혼또니'] / (val['혼또니'] + val['히스']);
+  })
+
   function showGroupName(): boolean {
-    if ($state == 0) return true;
+    if ($state == 0 || $state == 3 || $state == 4) return true;
     else return false;
   }
 
@@ -49,6 +62,8 @@
 
   onDestroy(() => {
     stopStatePolling();
+    detectState;
+    liveRatio;
   })
 </script>
 
@@ -56,7 +71,7 @@
   <div class="grid">
     <div class="sub-grid">
       <div class="upper-cell">
-        <InitialGroupLogo groupNumber={0} visible={showGroupName()} size={130}/>
+        <InitialGroupLogo groupNumber={1} visible={showGroupName()} size={130}/>
       </div>
       {#if showVoteDount() == 0 || showVoteDount() == 1}
       <DonutVote {voteRatio} size={370} DountColor={showVoteDount() * 2}/>
@@ -84,7 +99,7 @@
     </div>
     <div class="sub-grid">
       <div class="upper-cell">
-        <InitialGroupLogo groupNumber={1} visible={showGroupName()} size={130}/>
+        <InitialGroupLogo groupNumber={0} visible={showGroupName()} size={130}/>
       </div>
       {#if showVoteDount() == 0 || showVoteDount() == 1}
         <DonutVote {voteRatio} size={370} DountColor={showVoteDount() + 1}/>

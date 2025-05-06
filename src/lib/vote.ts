@@ -9,23 +9,27 @@ async function parseCountAsObject(
     const res = await fetch(url);
     const text = await res.text();
 
-    const json = JSON.parse(text.replace(/^.*\n/, '').replace(/;$/, ''));
-    const { cols, rows } = json.table;
-
+    const json = JSON.parse(text.replace(/^[\s\S]*?setResponse\(/, '').replace(/\);\s*$/, ''));
+    const cols = json.table["cols"];
+    const rows = json.table["rows"];
+    
     const firstRow = rows[0];
-
+    
     const result: Record<string, number> = {};
     cols.forEach((col, i) => {
         const label = col.label;
         const cnt = Number(firstRow.c[i]?.f ?? '0');
         result[label] = cnt;
     });
-
+    
     return result;
 }
 
 function deepEqual(obj1: Record<string, number>, obj2: Record<string, number>): boolean {
     const keys1 = Object.keys(obj1);
+    if (obj2 == null) {
+        return false
+    }
     const keys2 = Object.keys(obj2);
     if (keys1.length !== keys2.length) return false;
 
@@ -42,6 +46,8 @@ export async function getLiveVoteCount() {
 
     const snapshot = await get(ref(db, 'vote/live'));
     const newData = await parseCountAsObject(liveID, liveGID);
+
+    console.log(newData);
 
     if (!deepEqual(newData, snapshot.val())) {
         setLiveVoteCount(newData);
