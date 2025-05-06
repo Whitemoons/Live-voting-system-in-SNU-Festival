@@ -1,7 +1,11 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
+
   import DonutVote from './lib/DonutVote.svelte'
-  import Donut from './lib/Donut.svelte'
+  import ShowGroupLogo from './lib/ShowGroupLogo.svelte'
+  import InitialGroupLogo from './lib/InitialGroupLogo.svelte';
+  import ShowQr from './lib/ShowQR.svelte';
+
   import { startStatePolling, stopStatePolling } from './lib/polling';
   import { state } from './lib/voteStore';
 
@@ -29,6 +33,16 @@
     else return 4;
   }
 
+  function showLiveQR(): boolean {
+    if (1 <= $state  && $state <= 4) return true;
+    else return false;
+  }
+
+  function showFinalQR(): boolean {
+    if ($state == 5) return true;
+    else return false;
+  }
+
   onMount(() => {
     startStatePolling();
   })
@@ -40,55 +54,47 @@
 
 <main>
   <div class="grid">
-    <div class="cell">1,1</div>
-    <div class="cell">1,2</div>
-    <div class="cell">1,3</div>
-    <div class="cell">
-      <div class="flex">
-        <div>{showGroupName() ? group1 : ''}</div>
-        {#if showVoteDount() == 0}
-          <Donut dountColor = {0} size={300} />
-        {:else if showVoteDount() == 1}
-          <DonutVote {voteRatio} size={300} />
-        {:else}
-          <div></div>
-        {/if}
+    <div class="sub-grid">
+      <div class="upper-cell">
+        <InitialGroupLogo groupNumber={0} visible={showGroupName()} size={130}/>
+      </div>
+      {#if showVoteDount() == 0 || showVoteDount() == 1}
+      <DonutVote {voteRatio} size={370} DountColor={showVoteDount() * 2}/>
+      {:else}
+      <div></div>
+      {/if}
+      <div class="lower-cell">
+        <ShowQr QRNumber={0} visible={showLiveQR()} size={140}/>
       </div>
     </div>
     <div class="cell">
       <div>
         <div>
           {#if showTitle() == 0}
-            <div>스트릿 댄스 파이터</div>
-          {:else if showTitle() == 1}
-            <div>{group1}</div>
-          {:else if showTitle() == 2}
-            <div>{group2}</div>
+            <div class="title">스트릿 댄스<br/> 파이터</div>
+          {:else if showTitle() == 1 || showTitle() == 2}
+            <ShowGroupLogo groupNumber={showTitle()} />
           {:else if showTitle() == 3}
-            <div>QR</div>
+            <ShowQr QRNumber={1} visible={showFinalQR()} size={200}/>
           {:else}
             <div>Winner!</div>
           {/if}
         </div>
-        <div>{$state}</div>
-        <input type="range" min="0" max="1" step="0.01" bind:value={voteRatio} />
       </div>
     </div>
-    <div class="cell">
-      <div class="flex">
-        <div>{showGroupName() ? group2 : ''}</div>
-        {#if showVoteDount() == 0}
-            <Donut dountColor = {1} size={300} />
-        {:else if showVoteDount() == 1}
-          <DonutVote {voteRatio} size={300} />
-        {:else}
-          <div></div>
-        {/if}
+    <div class="sub-grid">
+      <div class="upper-cell">
+        <InitialGroupLogo groupNumber={1} visible={showGroupName()} size={130}/>
+      </div>
+      {#if showVoteDount() == 0 || showVoteDount() == 1}
+        <DonutVote {voteRatio} size={370} DountColor={showVoteDount() + 1}/>
+      {:else}
+        <div></div>
+      {/if}
+      <div class="lower-cell">
+        <ShowQr QRNumber={0} visible={showLiveQR()} size={140}/>
       </div>
     </div>
-    <div class="cell">3,1</div>
-    <div class="cell">3,2</div>
-    <div class="cell">3,3</div>
   </div>
 </main>
 
@@ -111,23 +117,37 @@
 
   .grid {
     display: grid;
-    grid-template-rows: 1fr 6fr 1fr;
     grid-template-columns: 1fr 1fr 1fr;
     height: 100vh;
     width: 100vw;
   }
 
-  .flex {
+  .sub-grid {
+    display: grid;
+    grid-template-rows: 1fr 1fr 1fr;
+    height: 100vh;
+    width: 100%;
+  }
+
+  .title {
+    font-size: 3em;
+  }
+
+  .upper-cell {
     display: flex;
-    align-items: center;
     justify-content: center;
-    flex-direction: column;
+    align-items: end;
   }
 
   .cell {
-    border: 1px solid #ccc;
     display: flex;
     justify-content: center;
     align-items: center;
+  }
+
+  .lower-cell {
+    display: flex;
+    justify-content: center;
+    align-items: start;
   }
 </style>

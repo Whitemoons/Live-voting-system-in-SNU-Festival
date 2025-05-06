@@ -3,6 +3,12 @@
 
     export let voteRatio: number = 0.5;
     export let size: number = 300;
+    export let DountColor: number = 0;
+    /*
+     * DountColor = 0 -> show black dount
+     * DountColor = 1 -> show red dount
+     * other value DountColor -> show ratio dount
+     */
 
     const cx = size / 2;
     const cy = size / 2;
@@ -73,7 +79,14 @@
     <defs>
       <mask id="voteMask">
         <rect x="-10" y="-10" width={size + 20} height={size + 20} fill="black" />
-        <path d={generateArcPath(animatedRatio.current)} fill="white" />
+        {#if DountColor == 0}
+          <path d={generateArcPath(0)} fill="white" />
+        {:else if DountColor == 1}
+          <path d={generateArcPath(1)} fill="white" />
+        {:else}
+          <path d={generateArcPath(animatedRatio.current)} fill="white" />
+        {/if}
+
       </mask>
     </defs>
 
