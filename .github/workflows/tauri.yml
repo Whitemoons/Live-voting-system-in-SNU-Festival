@@ -1,49 +1,53 @@
-name: Build Tauri App
+# .github/workflows/build.yml
+name: Build Tauri and Web App
 
 on:
   push:
-    branches:
-      - main  # 또는 원하는 브랜치 이름
+    branches: [main]
+  pull_request:
 
 jobs:
   build:
     strategy:
       matrix:
-        platform: [macos-latest, windows-latest]
+        platform: [macos-latest, ubuntu-latest] # 필요시 windows-latest 추가 가능
     runs-on: ${{ matrix.platform }}
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3.5.3
 
-      - uses: pnpm/action-setup@v2
+      - name: Set up Node.js
+        uses: actions/setup-node@v3.8.1
+        with:
+          node-version: 20
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v2.2.4
         with:
           version: 8
 
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Set up Rust toolchain
+        uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
-          components: rustfmt
           override: true
 
-      - name: Set up Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      - name: Install dependencies
-        run: |
-          pnpm install
+      - name: Build web frontend
+        run: pnpm build
 
       - name: Build Tauri app
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@v0.4.3
         with:
-          args: build
+          tagName: tauri-build-${{ matrix.platform }}
+          releaseName: "Build - ${{ matrix.platform }}"
+          args: --target release
 
-      # (Optional) 결과물 업로드
-      - name: Upload built artifacts
-        uses: actions/upload-artifact@v3
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3.1.3
         with:
           name: tauri-build-${{ matrix.platform }}
-          path: |
-            src-tauri/target/release/bundle/
+          path: src-tauri/target/release/bundle
