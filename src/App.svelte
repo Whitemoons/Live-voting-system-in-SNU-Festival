@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { Spring } from 'svelte/motion';
 
   import DonutVote from './lib/DonutVote.svelte'
   import ShowGroupLogo from './lib/ShowGroupLogo.svelte'
@@ -14,8 +15,8 @@
   let containerRef: HTMLDivElement;
   let dynamicSize = 370; // fallback default
 
-  let currentDountColorLeft: number = 0;
-  let currentDountColorRight: number = 1;
+  const springRatioLeft = new Spring(0, { stiffness: 0.07, damping: 0.8 });
+  const springRatioRight = new Spring(1, { stiffness: 0.07, damping: 0.8 });
 
   let result_1: number = 0;
   let result_2: number = 0;
@@ -77,6 +78,7 @@
   });
 
   $: {
+    const s = $state;
     const val = $liveVote;
     const a = Number(val['혼또니'] ?? 0);
     const b = Number(val['히스'] ?? 0);
@@ -86,13 +88,20 @@
       : a / (a + b);
 
     if (voteRatio !== newRatio) voteRatio = newRatio;
+
+    const mode = showVoteDount();
+    if (mode === 1) {
+      springRatioLeft.set(voteRatio);
+      springRatioRight.set(voteRatio);
+      console.log(mode, springRatioLeft.current);
+    } else {
+      springRatioLeft.set(0);
+      springRatioRight.set(1);
+    }
   }
   $: {
-    const status = $state;
+    const s = $state;
     const mode = showVoteDount();
-    currentDountColorLeft = mode == 1 ? voteRatio : 0;
-    currentDountColorRight = mode == 1 ? voteRatio : 1;
-    console.log(currentDountColorLeft);
 
     const liveActive = (mode == 1);
     if (liveActive !== prevLivePolling) {
@@ -121,7 +130,7 @@
     result_1 = l_1 * 0.3 + f_1 * 0.7;
     result_2 = l_2 * 0.3 + f_2 * 0.7;
 
-    console.log(result_1, result_2);
+    //console.log(result_1, result_2);
   }
 </script>
 
@@ -134,7 +143,7 @@
         </div>
         {#if showVoteDount() == 0 || showVoteDount() == 1}
         <div class="glow">
-          <DonutVote voteRatio = {currentDountColorLeft} size={dynamicSize*0.8}/>
+          <DonutVote voteRatio={springRatioLeft.current} size={dynamicSize*0.8}/>
         </div>
         {:else}
         <div></div>
@@ -148,7 +157,7 @@
         </div>
         <div class="cell">
           {#if showTitle() == 0}
-            <div class="glow title">스누댄스파이터<br/><div style="font-size:35px">SNU Dance Fighter</div></div>
+            <div class="glow title">스댄파<br/><div style="font-size:35px">SNU Dance Fighter</div></div>
           {:else if showTitle() == 1 || showTitle() == 2}
             <div class="glow"><ShowGroupLogo groupNumber={showTitle()} size={dynamicSize * 0.7}/></div>
           {:else if showTitle() == 3}
@@ -170,7 +179,7 @@
         </div>
         {#if showVoteDount() == 0 || showVoteDount() == 1}
           <div class="glow">
-            <DonutVote voteRatio = {currentDountColorRight} size={dynamicSize*0.8}/>
+            <DonutVote voteRatio={springRatioRight.current} size={dynamicSize*0.8}/>
           </div>
         {:else}
           <div></div>

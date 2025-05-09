@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { Spring } from 'svelte/motion';
 
     export let voteRatio: number = 0.5;
     export let size: number = 300;
@@ -65,11 +64,6 @@
         }
     }
 
-    const animatedRatio = new Spring(voteRatio, {
-        stiffness: 0.07,
-        damping: 0.8
-    });
-    $: animatedRatio.set(voteRatio);
 </script>
 
 <div style="overflow: visible;">
@@ -77,7 +71,7 @@
     <defs>
       <mask id="voteMask">
         <rect x="0" y="0" width={size} height={size} fill="black" />
-          <path d={generateArcPath(animatedRatio.current)} fill="white" />
+        <path d={generateArcPath(voteRatio)} fill="white" />
       </mask>
     </defs>
 
