@@ -14,7 +14,7 @@
     function generateArcPath(ratio: number): string {
         if (ratio <= 0) return '';
         if (ratio >= 1) {
-        return `M ${cx} ${cy} L ${cx} 0 L ${size} 0 L ${size} ${size} L 0 ${size} L 0 0 L ${cx} 0 Z`;
+          return `M 0 0 H ${size} V ${size} H 0 Z`;
         }
 
         const angle = ratio * 360;
