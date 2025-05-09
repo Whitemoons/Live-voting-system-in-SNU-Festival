@@ -14,7 +14,7 @@
     function generateArcPath(ratio: number): string {
         if (ratio <= 0) return '';
         if (ratio >= 1) {
-          return `M 0 0 H ${size} V ${size} H 0 Z`;
+          return `M 0 0 L ${size} 0 L ${size} ${size} L 0 ${size} Z`;
         }
 
         const angle = ratio * 360;
@@ -75,13 +75,14 @@
     </defs>
 
     <image href="/red_donut_square.png" x="0" y="0" width={size} height={size} />
-    <image
-      href="/black_donut_square.png"
-      x="0"
-      y="0"
-      width={size}
-      height={size}
-      clip-path="url(#voteClip)"
-    />
+    <g clip-path="url(#voteClip)">
+      <image
+        href="/black_donut_square.png"
+        x="0"
+        y="0"
+        width={size}
+        height={size}
+      />
+    </g>
   </svg>
 </div>

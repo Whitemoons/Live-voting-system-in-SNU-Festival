@@ -143,7 +143,7 @@
         </div>
         {#if showVoteDount() == 0 || showVoteDount() == 1}
         <div class="glow">
-          <DonutVote voteRatio={springRatioLeft.current} size={dynamicSize*0.8}/>
+          <DonutVote voteRatio={springRatioLeft.current} size={dynamicSize*0.7}/>
         </div>
         {:else}
         <div></div>
@@ -159,14 +159,14 @@
           {#if showTitle() == 0}
             <div class="glow title">스댄파<br/><div style="font-size:35px">SNU Dance Fighter</div></div>
           {:else if showTitle() == 1 || showTitle() == 2}
-            <div class="glow"><ShowGroupLogo groupNumber={showTitle()} size={dynamicSize * 0.7}/></div>
+            <div class="glow"><ShowGroupLogo groupNumber={showTitle()} size={dynamicSize * 0.6}/></div>
           {:else if showTitle() == 3}
             <ShowQr QRNumber={1} visible={showFinalQR()} size={dynamicSize * 0.5}/>
           {:else}
             {#if result_1 > result_2}
-              <InitialGroupLogo groupNumber={0} visible={true} size={dynamicSize * 0.7}/>
+              <InitialGroupLogo groupNumber={0} visible={true} size={dynamicSize * 0.6}/>
             {:else if result_2 > result_1}
-              <InitialGroupLogo groupNumber={1} visible={true} size={dynamicSize * 0.7}/>
+              <InitialGroupLogo groupNumber={1} visible={true} size={dynamicSize * 0.6}/>
             {:else}
               <div>Tie!</div>
             {/if}
@@ -179,7 +179,7 @@
         </div>
         {#if showVoteDount() == 0 || showVoteDount() == 1}
           <div class="glow">
-            <DonutVote voteRatio={springRatioRight.current} size={dynamicSize*0.8}/>
+            <DonutVote voteRatio={springRatioRight.current} size={dynamicSize*0.7}/>
           </div>
         {:else}
           <div></div>
