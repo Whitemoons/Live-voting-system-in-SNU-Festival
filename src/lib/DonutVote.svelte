@@ -69,10 +69,9 @@
 <div style="overflow: visible;">
   <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
     <defs>
-      <mask id="voteMask">
-        <rect x="0" y="0" width={size} height={size} fill="black" />
-        <path d={generateArcPath(voteRatio)} fill="white" />
-      </mask>
+      <clipPath id="voteClip">
+        <path d={generateArcPath(voteRatio)} />
+      </clipPath>
     </defs>
 
     <image href="/red_donut_square.png" x="0" y="0" width={size} height={size} />
@@ -82,7 +81,7 @@
       y="0"
       width={size}
       height={size}
-      mask="url(#voteMask)"
+      clip-path="url(#voteClip)"
     />
   </svg>
 </div>
