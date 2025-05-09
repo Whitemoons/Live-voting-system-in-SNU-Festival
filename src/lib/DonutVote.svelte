@@ -8,6 +8,8 @@
      * DountColor = 'Ratio' -> show ratio dount
      */
 
+    $: clipId = `voteClip-${Math.random().toString(36).substring(2, 9)}`;
+
     $: cx = size / 2;
     $: cy = size / 2;
 
@@ -69,13 +71,13 @@
 <div style="overflow: visible;">
   <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
     <defs>
-      <clipPath id="voteClip">
+      <clipPath id={clipId}>
         <path d={generateArcPath(voteRatio)} />
       </clipPath>
     </defs>
 
     <image href="/red_donut_square.png" x="0" y="0" width={size} height={size} />
-    <g clip-path="url(#voteClip)">
+    <g clip-path={`url(#${clipId})`}>
       <image
         href="/black_donut_square.png"
         x="0"
