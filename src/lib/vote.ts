@@ -47,8 +47,6 @@ export async function getLiveVoteCount() {
     const snapshot = await get(ref(db, 'vote/live'));
     const newData = await parseCountAsObject(liveID, liveGID);
 
-    console.log(newData);
-
     if (!deepEqual(newData, snapshot.val())) {
         setLiveVoteCount(newData);
     }
@@ -68,7 +66,7 @@ export async function getFinalVoteCount() {
     const newData = await parseCountAsObject(finalID, finalGID);
 
     if (!deepEqual(newData, snapshot.val())) {
-        setLiveVoteCount(newData);
+        setFinalVoteCount(newData);
     }
 
     return newData;

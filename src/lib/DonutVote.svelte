@@ -3,16 +3,14 @@
 
     export let voteRatio: number = 0.5;
     export let size: number = 300;
-    export let DountColor: number = 0;
     /*
-     * DountColor = 0 -> show black dount
-     * DountColor = 1 -> show red dount
-     * other value DountColor -> show ratio dount
+     * DountColor = 'Black' -> show black dount
+     * DountColor = 'Red' -> show red dount
+     * DountColor = 'Ratio' -> show ratio dount
      */
 
-    const cx = size / 2;
-    const cy = size / 2;
-    const radius = size/2;
+    $: cx = size / 2;
+    $: cy = size / 2;
 
     function generateArcPath(ratio: number): string {
         if (ratio <= 0) return '';
@@ -75,18 +73,11 @@
 </script>
 
 <div style="overflow: visible;">
-  <svg width={size} height={size} viewBox={`-10 -10 ${size + 20} ${size + 20}`}>
+  <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
     <defs>
       <mask id="voteMask">
-        <rect x="-10" y="-10" width={size + 20} height={size + 20} fill="black" />
-        {#if DountColor == 0}
-          <path d={generateArcPath(0)} fill="white" />
-        {:else if DountColor == 1}
-          <path d={generateArcPath(1)} fill="white" />
-        {:else}
+        <rect x="0" y="0" width={size} height={size} fill="black" />
           <path d={generateArcPath(animatedRatio.current)} fill="white" />
-        {/if}
-
       </mask>
     </defs>
 

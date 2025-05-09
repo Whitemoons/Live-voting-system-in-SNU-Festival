@@ -1,31 +1,27 @@
 <script lang="ts">
-  import { onDestroy, onMount } from 'svelte';
+  import { onMount } from 'svelte';
 
   import DonutVote from './lib/DonutVote.svelte'
   import ShowGroupLogo from './lib/ShowGroupLogo.svelte'
   import InitialGroupLogo from './lib/InitialGroupLogo.svelte';
   import ShowQr from './lib/ShowQR.svelte';
 
-  import { startLivePolling, startStatePolling, stopLivePolling, stopStatePolling } from './lib/polling';
+  import { startFinalPolling, startLivePolling, startStatePolling, stopFinalPolling, stopLivePolling, stopStatePolling } from './lib/polling';
   import { state, liveVote, finalVote } from './lib/voteStore';
 
   let voteRatio = 0.5;
-  
-  const group1 = import.meta.env.VITE_GROUP_1;
-  const group2 = import.meta.env.VITE_GROUP_2;
 
-  const detectState = state.subscribe(s => {
-    if (showLiveQR()) {
-      startLivePolling();
-    } else {
-      stopLivePolling();
-    }
-  })
+  let containerRef: HTMLDivElement;
+  let dynamicSize = 370; // fallback default
 
-  const liveRatio = liveVote.subscribe(val => {
-    if (val['혼또니'] == 0 && val['히스'] == 0) voteRatio = 0.5;
-    else voteRatio = val['혼또니'] / (val['혼또니'] + val['히스']);
-  })
+  let currentDountColorLeft: number = 0;
+  let currentDountColorRight: number = 1;
+
+  let result_1: number = 0;
+  let result_2: number = 0;
+
+  let prevLivePolling = false;
+  let prevFinalPolling = false;
 
   function showGroupName(): boolean {
     if ($state == 0 || $state == 3 || $state == 4) return true;
@@ -33,7 +29,7 @@
   }
 
   function showVoteDount(): number {
-    if ($state == 0 || $state == 3 || $state == 4) return 0;
+    if ($state == 0 || $state == 3 || $state == 4 || $state == 6) return 0;
     else if ($state == 1 || $state == 2) return 1;
     else return 2;
   }
@@ -56,62 +52,136 @@
     else return false;
   }
 
-  onMount(() => {
-    startStatePolling();
-  })
+  let resizeObserver: ResizeObserver;
 
-  onDestroy(() => {
-    stopStatePolling();
-    detectState;
-    liveRatio;
-  })
+  onMount(() => {
+    if (typeof window !== 'undefined' && containerRef) {
+      resizeObserver = new ResizeObserver(entries => {
+        for (let entry of entries) {
+          const rect = entry.contentRect;
+          const newSize = rect.width / 3;
+          if (Math.abs(dynamicSize - newSize) > 1) {
+            dynamicSize = newSize;
+          }
+        }
+      });
+      resizeObserver.observe(containerRef);
+    }
+
+    startStatePolling();
+
+    return () => {
+      stopStatePolling();
+      if (resizeObserver && containerRef) resizeObserver.unobserve(containerRef);
+    };
+  });
+
+  $: {
+    const val = $liveVote;
+    const a = Number(val['혼또니'] ?? 0);
+    const b = Number(val['히스'] ?? 0);
+
+    const newRatio = (a === 0 && b === 0)
+      ? 0.5
+      : a / (a + b);
+
+    if (voteRatio !== newRatio) voteRatio = newRatio;
+  }
+  $: {
+    const status = $state;
+    const mode = showVoteDount();
+    currentDountColorLeft = mode == 1 ? voteRatio : 0;
+    currentDountColorRight = mode == 1 ? voteRatio : 1;
+    console.log(currentDountColorLeft);
+
+    const liveActive = (mode == 1);
+    if (liveActive !== prevLivePolling) {
+      prevLivePolling = liveActive;
+      if (liveActive) startLivePolling();
+      else stopLivePolling();
+    }
+
+    // Final polling
+    const finalActive = (mode == 2);
+    if (finalActive !== prevFinalPolling) {
+      prevFinalPolling = finalActive;
+      if (finalActive) startFinalPolling();
+      else stopFinalPolling();
+    }
+  }
+  $: {
+    const val = $liveVote;
+    const l_1 = Number(val['혼또니'] ?? 0);
+    const l_2 = Number(val['히스'] ?? 0);
+    
+    const final = $finalVote;
+    const f_1 = Number(final['혼또니'] ?? 0);
+    const f_2 = Number(final['히스'] ?? 0);
+
+    result_1 = l_1 * 0.3 + f_1 * 0.7;
+    result_2 = l_2 * 0.3 + f_2 * 0.7;
+
+    console.log(result_1, result_2);
+  }
 </script>
 
-<main>
-  <div class="grid">
-    <div class="sub-grid">
-      <div class="upper-cell">
-        <InitialGroupLogo groupNumber={1} visible={showGroupName()} size={130}/>
+<div bind:this={containerRef}>
+  <main>
+    <div class="grid">
+      <div class="sub-grid">
+        <div class="upper-cell">
+          <InitialGroupLogo groupNumber={1} visible={showGroupName()} size={130}/>
+        </div>
+        {#if showVoteDount() == 0 || showVoteDount() == 1}
+        <div class="glow">
+          <DonutVote voteRatio = {currentDountColorLeft} size={dynamicSize*0.8}/>
+        </div>
+        {:else}
+        <div></div>
+        {/if}
+        <div class="lower-cell">
+          <ShowQr QRNumber={0} visible={showLiveQR()} size={dynamicSize*0.3}/>
+        </div>
       </div>
-      {#if showVoteDount() == 0 || showVoteDount() == 1}
-      <DonutVote {voteRatio} size={370} DountColor={showVoteDount() * 2}/>
-      {:else}
-      <div></div>
-      {/if}
-      <div class="lower-cell">
-        <ShowQr QRNumber={0} visible={showLiveQR()} size={140}/>
-      </div>
-    </div>
-    <div class="cell">
-      <div>
-        <div>
+      <div class="sub-grid">
+        <div class="upper-cell">
+        </div>
+        <div class="cell">
           {#if showTitle() == 0}
-            <div class="title">스트릿 댄스<br/> 파이터</div>
+            <div class="glow title">스누댄스파이터<br/><div style="font-size:35px">SNU Dance Fighter</div></div>
           {:else if showTitle() == 1 || showTitle() == 2}
-            <ShowGroupLogo groupNumber={showTitle()} />
+            <div class="glow"><ShowGroupLogo groupNumber={showTitle()} size={dynamicSize * 0.7}/></div>
           {:else if showTitle() == 3}
-            <ShowQr QRNumber={1} visible={showFinalQR()} size={200}/>
+            <ShowQr QRNumber={1} visible={showFinalQR()} size={dynamicSize * 0.5}/>
           {:else}
-            <div>Winner!</div>
+            {#if result_1 > result_2}
+              <InitialGroupLogo groupNumber={0} visible={true} size={dynamicSize * 0.7}/>
+            {:else if result_2 > result_1}
+              <InitialGroupLogo groupNumber={1} visible={true} size={dynamicSize * 0.7}/>
+            {:else}
+              <div>Tie!</div>
+            {/if}
           {/if}
         </div>
       </div>
-    </div>
-    <div class="sub-grid">
-      <div class="upper-cell">
-        <InitialGroupLogo groupNumber={0} visible={showGroupName()} size={130}/>
+      <div class="sub-grid">
+        <div class="upper-cell">
+          <InitialGroupLogo groupNumber={0} visible={showGroupName()} size={130}/>
+        </div>
+        {#if showVoteDount() == 0 || showVoteDount() == 1}
+          <div class="glow">
+            <DonutVote voteRatio = {currentDountColorRight} size={dynamicSize*0.8}/>
+          </div>
+        {:else}
+          <div></div>
+        {/if}
+        <div class="lower-cell">
+          <ShowQr QRNumber={0} visible={showLiveQR()} size={dynamicSize*0.3}/>
+        </div>
       </div>
-      {#if showVoteDount() == 0 || showVoteDount() == 1}
-        <DonutVote {voteRatio} size={370} DountColor={showVoteDount() + 1}/>
-      {:else}
-        <div></div>
-      {/if}
-      <div class="lower-cell">
-        <ShowQr QRNumber={0} visible={showLiveQR()} size={140}/>
-      </div>
     </div>
-  </div>
-</main>
+  </main>
+</div>
 
 <style>
   @font-face {
@@ -164,5 +234,9 @@
     display: flex;
     justify-content: center;
     align-items: start;
+  }
+
+  .glow {
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
   }
 </style>

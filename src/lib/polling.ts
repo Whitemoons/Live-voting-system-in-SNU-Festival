@@ -7,26 +7,28 @@ let intervalLiveId: number | null = null;
 let intervalFinalId: number | null = null;
 
 export function startStatePolling(intervalMs = 1000) {
-  setInterval(async () => {
-    const snapshot = await getSavedState();
-    const newState = snapshot.val();
-
-    if (JSON.stringify(state) !== JSON.stringify(newState)) {
-      state.set(newState);
-    }
-  }, intervalMs);
+  if (intervalStateId === null) {
+    intervalStateId = setInterval(async () => {
+      const snapshot = await getSavedState();
+      const newState = snapshot.val();
+  
+      if (JSON.stringify(state) !== JSON.stringify(newState)) {
+        state.set(newState);
+      }
+    }, intervalMs);
+  }
 }
 
 export function stopStatePolling() {
-    if (intervalStateId !== null) {
-        clearInterval(intervalStateId);
-        intervalStateId = null;
-    }
+  if (intervalStateId !== null) {
+      clearInterval(intervalStateId);
+      intervalStateId = null;
+  }
 }
 
 export function startLivePolling(intervalMs = 1000) {
   if (intervalLiveId === null) {
-    setInterval(async () => {
+    intervalLiveId = setInterval(async () => {
         const data = await getLiveVoteCount();
         liveVote.set(data);
       }, intervalMs);
