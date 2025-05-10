@@ -8,7 +8,10 @@
   import ShowQr from './lib/ShowQR.svelte';
 
   import { startFinalPolling, startLivePolling, startStatePolling, stopFinalPolling, stopLivePolling, stopStatePolling } from './lib/polling';
-  import { state, liveVote, finalVote } from './lib/voteStore';
+  import { state as stateStore, liveVote, finalVote } from './lib/voteStore';
+  import { idxToState } from './lib/state';
+
+  import type { State } from './lib/state';
 
   let voteRatio = 0.5;
 
@@ -24,32 +27,34 @@
   let prevLivePolling = false;
   let prevFinalPolling = false;
 
+  let currentState: State = 'Initial';
+
   function showGroupName(): boolean {
-    if ($state == 0 || $state == 3 || $state == 4) return true;
+    if (currentState == 'Initial' || currentState == 'R1_1' || currentState == 'R1_2' || currentState == 'R6_1' || currentState == 'R6_2') return true;
     else return false;
   }
 
   function showVoteDount(): number {
-    if ($state == 0 || $state == 3 || $state == 4 || $state == 6) return 0;
-    else if ($state == 1 || $state == 2) return 1;
-    else return 2;
+    if (currentState == 'Final') return 2;
+    else if (currentState == 'R2-5_1' || currentState == 'R2-5_2') return 1;
+    else return 0;
   }
 
   function showTitle(): number {
-    if ($state == 0) return 0;
-    else if ($state == 1 || $state == 3) return 1;
-    else if ($state == 2 || $state == 4) return 2;
-    else if ($state == 5) return 3;
+    if (currentState == 'Initial') return 0;
+    else if (currentState == 'R1_1' || currentState == 'R2-5_1' || currentState == 'R6_1') return 1;
+    else if (currentState == 'R1_2' || currentState == 'R2-5_2' || currentState == 'R6_2') return 2;
+    else if (currentState == 'Final') return 3;
     else return 4;
   }
 
   function showLiveQR(): boolean {
-    if (1 <= $state  && $state <= 4) return true;
+    if (currentState == 'R2-5_1' || currentState == 'R2-5_2' || currentState == 'R6_1' || currentState == 'R6_2') return true;
     else return false;
   }
 
   function showFinalQR(): boolean {
-    if ($state == 5) return true;
+    if (currentState == 'Final') return true;
     else return false;
   }
 
@@ -77,8 +82,9 @@
     };
   });
 
+  $: currentState = idxToState($stateStore);
   $: {
-    const s = $state;
+    const s = $stateStore;
     const val = $liveVote;
     const a = Number(val['혼또니'] ?? 0);
     const b = Number(val['히스'] ?? 0);
@@ -100,7 +106,7 @@
     }
   }
   $: {
-    const s = $state;
+    const s = $stateStore;
     const mode = showVoteDount();
 
     const liveActive = (mode == 1);
